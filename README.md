@@ -4,8 +4,9 @@
 
 ```
 cd websockets-server
-.\gradlew.bat build
-.\gradlew.bat run
+chmod +x ./gradlew
+./gradlew build
+./gradlew run
 ```
 
 ## Local Client
