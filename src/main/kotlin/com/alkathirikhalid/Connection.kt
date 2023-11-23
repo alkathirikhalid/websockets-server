@@ -8,5 +8,6 @@ class Connection(val session: DefaultWebSocketSession) {
         val lastId = AtomicInteger(0)
     }
 
-    val name = "user${lastId.getAndIncrement()}"
+    var name = "user${lastId.getAndIncrement()}"
+        get() = field.takeIf { it.isNotBlank() } ?: "Anonymous"
 }
