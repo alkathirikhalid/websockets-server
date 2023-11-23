@@ -24,7 +24,7 @@ fun Application.configureSockets() {
                 // Ask the user to enter a username
                 send("Please enter your name:")
                 val usernameFrame = incoming.receive() as Frame.Text
-                thisConnection.name = usernameFrame.readText()
+                thisConnection.name = usernameFrame.readText().replace("\\s".toRegex(), "")
 
                 // Notify everyone about the new user
                 connections.forEach {
@@ -44,9 +44,21 @@ fun Application.configureSockets() {
                     frame as? Frame.Text ?: continue
                     val receivedText = frame.readText()
 
-                    // Broadcast the message to all users
-                    connections.forEach {
-                        it?.session?.send("[${thisConnection.name}]: $receivedText")
+                    if (receivedText.startsWith("/whisper ")) {
+                        // Handle /whisper command
+                        val parts = receivedText.split(" ", limit = 3)
+                        if (parts.size == 3) {
+                            val targetUsername = parts[1]
+                            val message = parts[2]
+                            sendWhisper(thisConnection, targetUsername, message, connections)
+                        } else {
+                            thisConnection.session.send("Invalid /whisper command format.")
+                        }
+                    } else {
+                        // Broadcast the message to all users
+                        connections.forEach {
+                            it?.session?.send("[${thisConnection.name}]: $receivedText")
+                        }
                     }
                 }
             } catch (e: Exception) {
@@ -62,3 +74,23 @@ fun Application.configureSockets() {
     }
 }
 
+private suspend fun sendWhisper(
+    sender: Connection,
+    targetUsername: String,
+    message: String,
+    connections: Set<Connection?>
+) {
+    if (targetUsername.equals("anonymous", ignoreCase = true)) {
+        // Throw an error if whispering to "anonymous" ignore case
+        sender.session.send("Invalid whisper target name: anonymous")
+        return
+    }
+    val targetConnection = connections.firstOrNull { it?.name == targetUsername }
+    if (targetConnection != null) {
+        // Send a private message to the target user
+        targetConnection.session.send("[Whisper from ${sender.name}]: $message")
+    } else {
+        // Inform the sender that the target user was not found
+        sender.session.send("User $targetUsername not found.")
+    }
+}

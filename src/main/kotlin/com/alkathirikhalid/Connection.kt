@@ -9,5 +9,5 @@ class Connection(val session: DefaultWebSocketSession) {
     }
 
     var name = "user${lastId.getAndIncrement()}"
-        get() = field.takeIf { it.isNotBlank() } ?: "Anonymous"
+        get() = field.takeIf { it.isNotBlank() } ?: "anonymous"
 }
