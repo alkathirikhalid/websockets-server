@@ -15,12 +15,18 @@ class ApplicationTest {
             }
 
             client.webSocket("/chat") {
-                val greetingText = (incoming.receive() as? Frame.Text)?.readText() ?: ""
-                assertEquals("You are connected! There are 1 users here.", greetingText)
+                val nameRequestText = (incoming.receive() as? Frame.Text)?.readText() ?: ""
+                println(nameRequestText)
+                assertEquals("Please enter your name:", nameRequestText)
 
-                send(Frame.Text("Hello, I was first!"))
+                val name = "alkathirikhalid"
+                val message = "Hello"
+
+                send(Frame.Text(name))
+                send(Frame.Text(message))
+
                 val responseText = (incoming.receive() as Frame.Text).readText()
-                assertEquals("[user0]: Hello, I was first!", responseText)
+                assertEquals("[$name]: $message", responseText)
             }
         }
     }
